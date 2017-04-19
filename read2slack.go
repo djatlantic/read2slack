@@ -231,10 +231,11 @@ func poster(cfg *TomlConfig, in <-chan string, done chan bool) {
 	var err bool
 
 	if cfg.User.Default != "" {
+		// if default channel specified
 		ch, err = cfg.Channels[cfg.User.Default]
 
 		if !err {
-			fmt.Printf("Could not find channel %s in config file", cfg.User.Default)
+			fmt.Printf("Could not find channel %s in config file (default)", cfg.User.Default)
 			done <- true
 			return
 		} else if ch.Channel == "" || ch.HookUrl == "" {
@@ -247,7 +248,7 @@ func poster(cfg *TomlConfig, in <-chan string, done chan bool) {
 		ch, err = cfg.Channels[SlackChannel]
 
 		if !err {
-			fmt.Println("Could not find channel %s in config file", SlackChannel)
+			fmt.Println("Could not find channel %s in config file (non default)", SlackChannel)
 			done <- true
 			return
 		} else if ch.Channel == "" || ch.HookUrl == "" {
@@ -375,7 +376,7 @@ func main() {
 		defaultIcon = cfg.User.IconEmoji
 	}
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: slackcat [-c channel] [-n name] [-i icon] [message]")
+		fmt.Fprintln(os.Stderr, "Usage: read2slack [-c channel] [-n name] [-i icon] [message]")
 	}
 
 	name := flag.StringP("name", "n", defaultName, "name")
@@ -387,11 +388,15 @@ func main() {
 	var ch channel
 	ch, ok := cfg.Channels[*c]
 	if !ok {
-		fmt.Println("Could not find channel %s info in config file", *c)
+		fmt.Println("Could not find channel %s info in config file (main)", *c)
 		return
 	} else if ch.Channel == "" || ch.HookUrl == "" {
 		fmt.Println("Missing information for %s", *c)
 		return
+	}
+
+	if cfg.User.Default != "" {
+		cfg.User.Default = *c
 	}
 
 	// using the command directly with string inputs
