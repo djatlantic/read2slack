@@ -235,11 +235,11 @@ func poster(cfg *TomlConfig, in <-chan string, done chan bool) {
 		ch, err = cfg.Channels[cfg.User.Default]
 
 		if !err {
-			fmt.Printf("Could not find channel %s in config file (default)", cfg.User.Default)
+			fmt.Printf("Could not find channel %s in config file (default)\n", cfg.User.Default)
 			done <- true
 			return
 		} else if ch.Channel == "" || ch.HookUrl == "" {
-			fmt.Println("Missing information for %s", cfg.User.Default)
+			fmt.Printf("Missing information for %s\n", cfg.User.Default)
 			done <- true
 			return
 		}
@@ -248,11 +248,11 @@ func poster(cfg *TomlConfig, in <-chan string, done chan bool) {
 		ch, err = cfg.Channels[SlackChannel]
 
 		if !err {
-			fmt.Println("Could not find channel %s in config file (non default)", SlackChannel)
+			fmt.Printf("Could not find channel %s in config file (non default)\n", SlackChannel)
 			done <- true
 			return
 		} else if ch.Channel == "" || ch.HookUrl == "" {
-			fmt.Println("Missing information for %s", SlackChannel)
+			fmt.Printf("Missing information for %s\n", SlackChannel)
 			done <- true
 			return
 		}
@@ -382,20 +382,34 @@ func main() {
 	name := flag.StringP("name", "n", defaultName, "name")
 	icon := flag.StringP("icon", "i", defaultIcon, "icon")
 
+	//if not specified than constant SlackChannel value is used
 	c := flag.StringP("channel", "c", SlackChannel, "channel")
 	flag.Parse()
 
 	var ch channel
-	ch, ok := cfg.Channels[*c]
-	if !ok {
-		fmt.Println("Could not find channel %s info in config file (main)", *c)
-		return
-	} else if ch.Channel == "" || ch.HookUrl == "" {
-		fmt.Println("Missing information for %s", *c)
-		return
-	}
 
 	if cfg.User.Default != "" {
+		ch, ok := cfg.Channels[cfg.User.Default]
+
+		if !ok {
+			fmt.Printf("Could not find channel %s info in config file (main)\n", cfg.User.Default)
+			return
+		} else if ch.Channel == "" || ch.HookUrl == "" {
+			fmt.Printf("Missing information for %s\n", cfg.User.Default)
+			return
+		}
+	} else {
+
+		ch, ok := cfg.Channels[*c]
+		if !ok {
+			fmt.Printf("Could not find default channel %s info in config file (main)\n", *c)
+			return
+		} else if ch.Channel == "" || ch.HookUrl == "" {
+			fmt.Printf("Missing information for %s\n", *c)
+			return
+		}
+
+		//set the Default channel to cmd line
 		cfg.User.Default = *c
 	}
 
